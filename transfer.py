@@ -125,3 +125,5 @@ for i in range(0, len(bulunanlar), 4):
 
 json.dump(list(gorulen)[-3000:], open(DOSYA, "w"))
 print(f"Gönderilen: {len(bulunanlar)}")
+
+gonder("✅ Bu mesaj transfer botundan geliyor")
