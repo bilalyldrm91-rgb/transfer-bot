@@ -10,7 +10,7 @@ API_KEY = os.environ["GROQ_API_KEY"]
 
 DAKIKA = 60        # son 1 saat
 MAX_MESAJ = 8
-MIN_SKOR = 5       # bunun altindaki haberler gonderilmez
+MIN_SKOR = 5       # test icin gecici olarak 0 yapabilirsin
 
 FEEDS = [
     ("TR", "https://news.google.com/rss/search?q=transfer+(anla%C5%9Fma+OR+imza+OR+bonservis+OR+resmen)+when:1d&hl=tr&gl=TR&ceid=TR:tr"),
@@ -24,7 +24,7 @@ YASAK = ["iddaa", "bahis", "kupon", "banko", "tahmin", "canlı skor",
 
 
 def kacis(s):
-    return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    return str(s).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
 
 def gonder(metin):
@@ -67,7 +67,8 @@ Her haber icin su alanlar:
 - "durum": "kesin" (resmen aciklandi/imzaladi), "yakin" (saglik kontrolu/anlasma saglandi), "soylenti" (ilgileniyor/gundeminde), "alakasiz" (transfer haberi degil)
 - "skor": 1-10 onem. Resmi aciklama 9-10, saglik kontrolu 7-8, ciddi gorusme 5-6, dedikodu 2-4, alakasiz 1.
 
-SADECE JSON dizisi dondur, baska hicbir sey yazma."""
+Cevabi {{"haberler": [...]}} seklinde bir JSON nesnesi olarak dondur.
+Tek haber olsa bile "haberler" bir dizi olmali. Baska hicbir sey yazma."""
 
     try:
         r = requests.post(
@@ -88,12 +89,15 @@ SADECE JSON dizisi dondur, baska hicbir sey yazma."""
         metin = re.sub(r"^```(?:json)?|```$", "", metin, flags=re.M).strip()
         veri = json.loads(metin)
 
-        # json_object modu bazen {"haberler": [...]} sarmalar
+        # tek nesne / sarmalanmis dizi / duz dizi — hepsini yakala
         if isinstance(veri, dict):
-            for v in veri.values():
-                if isinstance(v, list):
-                    veri = v
-                    break
+            if "no" in veri:
+                veri = [veri]
+            else:
+                for v in veri.values():
+                    if isinstance(v, list):
+                        veri = v
+                        break
         if not isinstance(veri, list):
             print("AI beklenmedik format:", str(veri)[:200])
             return {}
@@ -172,13 +176,13 @@ if ham:
 
         if oyuncu:
             if kulup and eski:
-                satir.append(f"⚽ <b>{kacis(str(oyuncu))}</b>   {kacis(str(eski))} → {kacis(str(kulup))}")
+                satir.append(f"⚽ <b>{kacis(oyuncu)}</b>   {kacis(eski)} → {kacis(kulup)}")
             elif kulup:
-                satir.append(f"⚽ <b>{kacis(str(oyuncu))}</b> → {kacis(str(kulup))}")
+                satir.append(f"⚽ <b>{kacis(oyuncu)}</b> → {kacis(kulup)}")
             else:
-                satir.append(f"⚽ <b>{kacis(str(oyuncu))}</b>")
+                satir.append(f"⚽ <b>{kacis(oyuncu)}</b>")
         elif kulup:
-            satir.append(f"🏟 <b>{kacis(str(kulup))}</b>")
+            satir.append(f"🏟 <b>{kacis(kulup)}</b>")
 
         satir.append(kacis(h["baslik"]))
         satir.append(f'📰 <a href="{h["link"]}">{kacis(h["kaynak"])}</a>  ·  {h["dk"]} dk önce')
