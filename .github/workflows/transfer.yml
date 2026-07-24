@@ -13,19 +13,22 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+
       - run: pip install requests feedparser
+
       - run: python transfer.py
-       env:
+        env:
           TOKEN: ${{ secrets.TOKEN }}
           CHAT_ID: ${{ secrets.CHAT_ID }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+
       - run: |
           git config user.name bot
           git config user.email bot@bot.com
-          git pull --rebase || true
           git add gorulen.json
           git commit -m "gorulen guncelleme" || exit 0
           git push
